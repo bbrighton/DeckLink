@@ -56,6 +56,9 @@
 
 - (void)setCaptureAudioDelegate:(id<DeckLinkDeviceCaptureAudioDelegate>)delegate queue:(dispatch_queue_t)queue;
 
+@property (atomic, readonly) BOOL supportsInputFormatDetection;
+- (void) setScreenPreviewView:(NSView *)previewView;
+
 - (BOOL)startCaptureWithError:(NSError **)error;
 - (void)stopCapture;
 

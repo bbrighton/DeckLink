@@ -413,6 +413,7 @@ static inline void CaptureQueue_dispatch_sync(dispatch_queue_t queue, dispatch_b
     if (supportsInputFormatDetection)
     {
         flags |= bmdVideoInputEnableFormatDetection;
+		self.supportsInputFormatDetection = supportsInputFormatDetection;
     }
     
     HRESULT status = deckLinkInput->EnableVideoInput(displayMode, pixelFormat, flags);
@@ -438,6 +439,17 @@ static inline void CaptureQueue_dispatch_sync(dispatch_queue_t queue, dispatch_b
     return status;
 }
 
+- (void) setScreenPreviewView:(NSView *)previewView {
+	IDeckLinkScreenPreviewCallback *previewCallback = ::CreateCocoaScreenPreview((__bridge void *)previewView);     // No change in ownership of underlying _previewView
+
+	if (previewCallback)
+	{
+		deckLinkInput->SetScreenPreviewCallback(previewCallback);
+	}
+
+	return;
+}
+
 - (BOOL)startCaptureWithError:(NSError **)outError
 {
 	__block BOOL result = NO;
@@ -448,7 +460,7 @@ static inline void CaptureQueue_dispatch_sync(dispatch_queue_t queue, dispatch_b
         
         self.captureInputSourceConnected = NO;
         self.captureActive = NO;
-        
+		
         if (self.captureActiveVideoFormatDescription)
         {
             HRESULT status = [self enableVideoInputWithVideoFormatDescription:self.captureActiveVideoFormatDescription];
@@ -756,7 +768,7 @@ static inline void CaptureQueue_dispatch_sync(dispatch_queue_t queue, dispatch_b
 			
 			NSNumber *displayMode2 = (__bridge NSNumber *)CMFormatDescriptionGetExtension(captureVideoFormatDescription, DeckLinkFormatDescriptionDisplayModeKey);
 			
-			if (displayModeValue == displayMode2.intValue && pixelFormat == CMVideoFormatDescriptionGetCodecType(captureVideoFormatDescription))
+			if ((displayModeValue == displayMode2.intValue) && (pixelFormat == CMVideoFormatDescriptionGetCodecType(captureVideoFormatDescription)))
 			{
 				NSError *error = nil;
 				if ([self setCaptureActiveVideoFormatDescription:captureVideoFormatDescription error:&error])
